@@ -1,4 +1,3 @@
-// src/Chat.jsx
 import { useState } from "react";
 
 export default function Chat() {
@@ -24,14 +23,21 @@ export default function Chat() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ messages: newMessages })
       });
+
       const data = await res.json();
 
-      setMessages((prev) => [...newMessages, data.assistant]);
+      // Safely add assistant message
+      const assistant = data.assistant ?? {
+        role: "assistant",
+        content: "No response from assistant."
+      };
+
+      setMessages((prev) => [...newMessages, assistant]);
     } catch (err) {
       console.error(err);
       setMessages((prev) => [
         ...newMessages,
-        { role: "assistant", content: "Error: could not get response" }
+        { role: "assistant", content: "Error: could not get response." }
       ]);
     } finally {
       setLoading(false);
@@ -50,7 +56,7 @@ export default function Chat() {
         }}
       >
         {messages
-          .filter((m) => m.role !== "system")
+          .filter((m) => m && m.role && m.role !== "system")
           .map((m, i) => (
             <div
               key={i}
